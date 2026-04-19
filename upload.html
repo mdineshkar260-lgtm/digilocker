@@ -119,16 +119,14 @@
 </main>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged }
-    from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, serverTimestamp }
-    from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-  import { getStorage, ref, uploadBytesResumable, getDownloadURL }
-    from "https://www.gstatic.com/firebasejs/11.0.0/firebase-storage.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getAuth, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-  // 🔧 REPLACE WITH YOUR FIREBASE CONFIG
- const firebaseConfig = {
+// 🔧 Firebase config
+const firebaseConfig = {
   apiKey: "AIzaSyBnxJyQkSNoxyH5G7jIbDIes3-7yduaO9M",
   authDomain: "diglocker.firebaseapp.com",
   projectId: "diglocker",
@@ -138,117 +136,155 @@
   measurementId: "G-CT4077PKS0"
 };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const storage = getStorage(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-  let currentUser = null;
-  let selectedFile = null;
+let currentUser = null;
+let selectedFile = null;
 
-  onAuthStateChanged(auth, user => {
-    if (!user) { window.location.href = 'login.html'; return; }
-    currentUser = user;
-  });
+// 🔐 Auth check
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    window.location.href = 'login.html';
+    return;
+  }
+  currentUser = user;
+});
 
-  // Drag & drop
-  const dz = document.getElementById('dropzone');
-  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
-  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-  dz.addEventListener('drop', e => {
-    e.preventDefault(); dz.classList.remove('dragover');
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
-  });
+// 📂 Drag & Drop
+const dz = document.getElementById('dropzone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
 
-  window.onFileSelect = function(input) {
-    if (input.files[0]) handleFile(input.files[0]);
-  };
+window.onFileSelect = function(input) {
+  if (input.files[0]) handleFile(input.files[0]);
+};
 
-  function handleFile(file) {
-    if (file.size > 10 * 1024 * 1024) { showMsg('File is too large. Max 10 MB.', 'error'); return; }
-    selectedFile = file;
-    const ext = file.name.split('.').pop().toUpperCase();
-    const icons = { PDF: '📄', JPG: '🖼️', JPEG: '🖼️', PNG: '🖼️', DOC: '📝', DOCX: '📝' };
-    document.getElementById('filePreview').style.display = 'flex';
-    document.getElementById('filePreview').innerHTML = `
-      <div class="file-icon">${icons[ext] || '📎'}</div>
-      <div class="file-info">
-        <div class="file-name">${file.name}</div>
-        <div class="file-size">${formatSize(file.size)} · ${ext}</div>
-      </div>
-      <span class="remove-btn" onclick="removeFile()">✕</span>
-    `;
-    if (!document.getElementById('docName').value) {
-      document.getElementById('docName').value = file.name.replace(/\.[^.]+$/, '');
+// 📄 File handling
+function handleFile(file) {
+  if (file.size > 10 * 1024 * 1024) {
+    showMsg('File is too large. Max 10 MB.', 'error');
+    return;
+  }
+
+  selectedFile = file;
+
+  const ext = file.name.split('.').pop().toUpperCase();
+  const icons = { PDF:'📄', JPG:'🖼️', JPEG:'🖼️', PNG:'🖼️', DOC:'📝', DOCX:'📝' };
+
+  document.getElementById('filePreview').style.display = 'flex';
+  document.getElementById('filePreview').innerHTML = `
+    <div class="file-icon">${icons[ext] || '📎'}</div>
+    <div class="file-info">
+      <div class="file-name">${file.name}</div>
+      <div class="file-size">${formatSize(file.size)} · ${ext}</div>
+    </div>
+    <span class="remove-btn" onclick="removeFile()">✕</span>
+  `;
+
+  if (!document.getElementById('docName').value) {
+    document.getElementById('docName').value = file.name.replace(/\.[^.]+$/, '');
+  }
+}
+
+window.removeFile = function() {
+  selectedFile = null;
+  document.getElementById('filePreview').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+};
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(1) + ' MB';
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  el.textContent = (type === 'error' ? '⚠️ ' : '✅ ') + text;
+  el.className = 'msg ' + type;
+}
+
+// ☁️ UPLOAD (Cloudinary)
+window.uploadDocument = async function() {
+  if (!selectedFile) return showMsg('Please select a file.', 'error');
+
+  const name = document.getElementById('docName').value.trim();
+  const category = document.getElementById('category').value;
+  const notes = document.getElementById('notes').value.trim();
+
+  if (!name) return showMsg('Enter document name.', 'error');
+  if (!category) return showMsg('Select category.', 'error');
+
+  const btn = document.getElementById('uploadBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Uploading...';
+
+  document.getElementById('progressWrap').style.display = 'block';
+
+  // Fake progress
+  let progress = 0;
+  const interval = setInterval(() => {
+    if (progress < 90) {
+      progress += 5;
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('progressPct').textContent = progress + '%';
     }
+  }, 200);
+
+  try {
+    const cloudName = "dk1mmzku2";
+    const preset = "digilocker_upload";
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("upload_preset", preset);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+    clearInterval(interval);
+
+    if (!data.secure_url) throw new Error("Upload failed");
+
+    document.getElementById('progressFill').style.width = '100%';
+    document.getElementById('progressPct').textContent = '100%';
+
+    const fileUrl = data.secure_url;
+
+    // Save to Firestore
+    await addDoc(collection(db, 'documents'), {
+      uid: currentUser.uid,
+      name,
+      category,
+      notes,
+      fileUrl,
+      fileName: selectedFile.name,
+      fileSize: selectedFile.size,
+      fileType: selectedFile.type,
+      uploadedAt: serverTimestamp()
+    });
+
+    showMsg('Upload successful!', 'success');
+    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+
+  } catch (err) {
+    clearInterval(interval);
+    showMsg('Upload failed: ' + err.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = '<span>☁️</span> Upload to Vault';
   }
-
-  window.removeFile = function() {
-    selectedFile = null;
-    document.getElementById('filePreview').style.display = 'none';
-    document.getElementById('fileInput').value = '';
-  };
-
-  function formatSize(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
-    return (bytes/1048576).toFixed(1) + ' MB';
-  }
-
-  function showMsg(text, type) {
-    const el = document.getElementById('msg');
-    el.textContent = (type === 'error' ? '⚠️ ' : '✅ ') + text;
-    el.className = 'msg ' + type;
-  }
-
-  window.uploadDocument = async function() {
-    if (!selectedFile) return showMsg('Please select a file to upload.', 'error');
-    const name     = document.getElementById('docName').value.trim();
-    const category = document.getElementById('category').value;
-    const notes    = document.getElementById('notes').value.trim();
-    if (!name) return showMsg('Please enter a document name.', 'error');
-    if (!category) return showMsg('Please select a category.', 'error');
-
-    const btn = document.getElementById('uploadBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Uploading...';
-    document.getElementById('progressWrap').style.display = 'block';
-
-    try {
-      const path = `documents/${currentUser.uid}/${Date.now()}_${selectedFile.name}`;
-      const storageRef = ref(storage, path);
-      const task = uploadBytesResumable(storageRef, selectedFile);
-
-      task.on('state_changed',
-        snap => {
-          const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
-          document.getElementById('progressFill').style.width = pct + '%';
-          document.getElementById('progressPct').textContent = pct + '%';
-        },
-        err => { showMsg('Upload failed: ' + err.message, 'error'); btn.disabled = false; btn.innerHTML = '<span>☁️</span> Upload to Vault'; },
-        async () => {
-          const url = await getDownloadURL(task.snapshot.ref);
-          await addDoc(collection(db, 'documents'), {
-            uid: currentUser.uid,
-            name, category, notes,
-            fileUrl: url,
-            filePath: path,
-            fileName: selectedFile.name,
-            fileSize: selectedFile.size,
-            fileType: selectedFile.type,
-            uploadedAt: serverTimestamp()
-          });
-          showMsg('Document uploaded successfully!', 'success');
-          setTimeout(() => window.location.href = 'dashboard.html', 1500);
-        }
-      );
-    } catch (e) {
-      showMsg('Error: ' + e.message, 'error');
-      btn.disabled = false;
-      btn.innerHTML = '<span>☁️</span> Upload to Vault';
-    }
-  };
+};
 </script>
 
 </body>
