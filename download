@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.env
+
+# Database (don't commit — Render creates fresh each deploy)
+database/digilocker.db
+
+# Uploaded files (don't commit user data)
+static/uploads/*
+!static/uploads/.gitkeep
