@@ -2,7 +2,12 @@
  * DigiLocker — Dashboard Logic
  * Handles navigation, document CRUD, upload, admin panel, dark mode.
  */
+// Check if user is logged in
+const user = localStorage.getItem("user");
 
+if (!user) {
+    window.location.href = "index.html";
+}
 // ── Auth Guard ─────────────────────────────────────────────────────────────────
 if (!requireAuth()) throw new Error("Not authenticated");
 
