@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DigiLock – Your Digital Document Vault</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0c10;
+      --surface: #111318;
+      --border: #1e2230;
+      --accent: #4f8ef7;
+      --accent2: #7c5cfc;
+      --text: #e8eaf0;
+      --muted: #7b8099;
+      --glow: rgba(79,142,247,0.18);
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+    /* NAV */
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 2.5rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(10,12,16,0.92); backdrop-filter: blur(12px); z-index: 100; }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.4rem; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
+    .logo span { color: #fff; -webkit-text-fill-color: #fff; }
+    .nav-links { display: flex; gap: 1rem; }
+    .btn { padding: 0.55rem 1.4rem; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.92rem; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.2s; border: none; }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 8px 24px var(--glow); }
+    /* HERO */
+    .hero { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 7rem 2rem 5rem; position: relative; }
+    .hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 700px; height: 700px; background: radial-gradient(ellipse at center, rgba(79,142,247,0.1) 0%, transparent 70%); pointer-events: none; }
+    .badge { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(79,142,247,0.1); border: 1px solid rgba(79,142,247,0.3); color: var(--accent); font-size: 0.82rem; font-weight: 500; padding: 0.35rem 1rem; border-radius: 100px; margin-bottom: 2rem; animation: fadeUp 0.6s ease both; }
+    .hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; max-width: 750px; animation: fadeUp 0.6s 0.1s ease both; }
+    .hero h1 .grad { background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { color: var(--muted); font-size: 1.15rem; max-width: 520px; margin: 1.5rem auto; line-height: 1.7; animation: fadeUp 0.6s 0.2s ease both; }
+    .hero-btns { display: flex; gap: 1rem; margin-top: 2rem; animation: fadeUp 0.6s 0.3s ease both; }
+    .btn-lg { padding: 0.85rem 2.2rem; font-size: 1rem; border-radius: 10px; }
+    /* FEATURES */
+    .features { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
+    .section-label { text-align: center; color: var(--accent); font-size: 0.82rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 1rem; }
+    .section-title { text-align: center; font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 700; margin-bottom: 3.5rem; }
+    .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; transition: border-color 0.2s, transform 0.2s; }
+    .card:hover { border-color: var(--accent); transform: translateY(-4px); }
+    .card-icon { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, rgba(79,142,247,0.15), rgba(124,92,252,0.15)); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.2rem; }
+    .card h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.6rem; }
+    .card p { color: var(--muted); font-size: 0.92rem; line-height: 1.6; }
+    /* DOC TYPES */
+    .doc-types { padding: 4rem 2rem; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .doc-types-inner { max-width: 900px; margin: 0 auto; text-align: center; }
+    .doc-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.8rem; margin-top: 2.5rem; }
+    .chip { background: var(--bg); border: 1px solid var(--border); border-radius: 100px; padding: 0.5rem 1.2rem; font-size: 0.88rem; color: var(--muted); display: flex; align-items: center; gap: 0.5rem; }
+    .chip span { font-size: 1rem; }
+    /* CTA */
+    .cta { text-align: center; padding: 6rem 2rem; }
+    .cta h2 { font-family: 'Syne', sans-serif; font-size: 2.4rem; font-weight: 800; margin-bottom: 1rem; }
+    .cta p { color: var(--muted); margin-bottom: 2.5rem; font-size: 1.05rem; }
+    footer { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 2rem; border-top: 1px solid var(--border); }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Digi<span>Lock</span></div>
+  <div class="nav-links">
+    <a href="login.html" class="btn btn-ghost">Login</a>
+    <a href="register.html" class="btn btn-primary">Get Started</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="badge">🔐 Secure · Cloud · Instant Access</div>
+  <h1>Your <span class="grad">Digital Document</span> Vault</h1>
+  <p>Store, organize, and access all your important documents anytime, anywhere. Aadhaar, PAN, Marksheets — all in one secure place.</p>
+  <div class="hero-btns">
+    <a href="register.html" class="btn btn-primary btn-lg">Create Free Account</a>
+    <a href="login.html" class="btn btn-ghost btn-lg">Sign In</a>
+  </div>
+</section>
+
+<section class="features">
+  <p class="section-label">Features</p>
+  <h2 class="section-title">Everything you need in one vault</h2>
+  <div class="grid3">
+    <div class="card">
+      <div class="card-icon">🔒</div>
+      <h3>Secure Storage</h3>
+      <p>All documents are encrypted and stored securely using Firebase. Only you can access your files with your account.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">☁️</div>
+      <h3>Cloud Access</h3>
+      <p>Access your documents from any device, anytime. No USB drives or paper copies needed ever again.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📂</div>
+      <h3>Organized Categories</h3>
+      <p>Automatically organize documents by type — Identity, Education, Finance, Medical, and more.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <h3>Instant Share</h3>
+      <p>Generate secure share links for your documents. Share with government portals or services in seconds.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔍</div>
+      <h3>Quick Search</h3>
+      <p>Find any document instantly with powerful search. No more digging through stacks of papers.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📱</div>
+      <h3>Mobile Friendly</h3>
+      <p>Fully responsive design works perfectly on phones. Show your documents directly from your phone screen.</p>
+    </div>
+  </div>
+</section>
+
+<section class="doc-types">
+  <div class="doc-types-inner">
+    <p class="section-label">Supported Documents</p>
+    <h2 class="section-title">Store every important document</h2>
+    <div class="doc-chips">
+      <div class="chip"><span>🪪</span> Aadhaar Card</div>
+      <div class="chip"><span>💳</span> PAN Card</div>
+      <div class="chip"><span>🎓</span> Degree Certificate</div>
+      <div class="chip"><span>📋</span> Marksheets</div>
+      <div class="chip"><span>🛂</span> Passport</div>
+      <div class="chip"><span>🚗</span> Driving Licence</div>
+      <div class="chip"><span>🏦</span> Bank Passbook</div>
+      <div class="chip"><span>🏥</span> Medical Records</div>
+      <div class="chip"><span>🏠</span> Property Documents</div>
+      <div class="chip"><span>📄</span> Other Documents</div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <h2>Ready to go paperless?</h2>
+  <p>Join thousands of users who trust DigiLock with their important documents.</p>
+  <a href="register.html" class="btn btn-primary btn-lg">Create Your Vault — It's Free</a>
+</section>
+
+<footer>© 2025 DigiLock. Built with Firebase &amp; ❤️ for secure document storage.</footer>
+
+</body>
+</html>
