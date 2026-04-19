@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard – DigiLock</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0c10; --surface: #111318; --surface2: #161921; --border: #1e2230;
+      --accent: #4f8ef7; --accent2: #7c5cfc; --text: #e8eaf0; --muted: #7b8099;
+      --error: #f7604f; --success: #4fd47a;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+    /* TOPBAR */
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 1rem 2rem; border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 100; }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .logo span { color: #fff; -webkit-text-fill-color: #fff; }
+    .topbar-right { display: flex; align-items: center; gap: 1rem; }
+    .user-chip { display: flex; align-items: center; gap: 0.6rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 0.4rem 1rem 0.4rem 0.4rem; font-size: 0.88rem; }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; }
+    .btn-logout { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.45rem 1rem; border-radius: 8px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+    .btn-logout:hover { border-color: var(--error); color: var(--error); }
+    /* LAYOUT */
+    .layout { display: flex; flex: 1; }
+    /* SIDEBAR */
+    .sidebar { width: 220px; border-right: 1px solid var(--border); padding: 1.5rem 1rem; flex-shrink: 0; background: var(--surface); }
+    .sidebar-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 0.7rem; padding-left: 0.5rem; }
+    .sidebar-item { display: flex; align-items: center; gap: 0.7rem; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; color: var(--muted); transition: all 0.15s; margin-bottom: 0.2rem; border: none; background: none; width: 100%; text-align: left; font-family: 'DM Sans', sans-serif; }
+    .sidebar-item:hover, .sidebar-item.active { background: rgba(79,142,247,0.1); color: var(--accent); }
+    .sidebar-item .icon { font-size: 1.1rem; }
+    /* MAIN */
+    .main { flex: 1; padding: 2rem; overflow-y: auto; }
+    .page-header { margin-bottom: 2rem; }
+    .page-header h1 { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; }
+    .page-header p { color: var(--muted); font-size: 0.9rem; margin-top: 0.3rem; }
+    /* STATS */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem 1.4rem; }
+    .stat-card .stat-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem; }
+    .stat-card .stat-val { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; }
+    .stat-card .stat-sub { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
+    /* TOOLBAR */
+    .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; gap: 1rem; flex-wrap: wrap; }
+    .search-box { display: flex; align-items: center; gap: 0.6rem; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 0.6rem 1rem; flex: 1; max-width: 360px; }
+    .search-box input { background: none; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.92rem; width: 100%; }
+    .search-box input::placeholder { color: var(--muted); }
+    .btn-upload { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 10px; color: #fff; padding: 0.6rem 1.4rem; font-family: 'DM Sans', sans-serif; font-size: 0.92rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; transition: opacity 0.2s; }
+    .btn-upload:hover { opacity: 0.88; }
+    /* FILTER CHIPS */
+    .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .filter-chip { padding: 0.4rem 1rem; border-radius: 100px; border: 1.5px solid var(--border); background: transparent; color: var(--muted); font-size: 0.82rem; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+    .filter-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,0.08); }
+    /* DOCS GRID */
+    .docs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+    .doc-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 1.4rem; cursor: pointer; transition: border-color 0.2s, transform 0.2s; position: relative; }
+    .doc-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+    .doc-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 1rem; }
+    .doc-card h3 { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .doc-card .doc-meta { font-size: 0.78rem; color: var(--muted); }
+    .doc-card .doc-tag { display: inline-block; margin-top: 0.7rem; padding: 0.25rem 0.7rem; border-radius: 100px; font-size: 0.73rem; font-weight: 600; }
+    .doc-card .doc-actions { position: absolute; top: 0.8rem; right: 0.8rem; display: flex; gap: 0.4rem; opacity: 0; transition: opacity 0.2s; }
+    .doc-card:hover .doc-actions { opacity: 1; }
+    .action-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); padding: 0.3rem 0.5rem; font-size: 0.8rem; cursor: pointer; }
+    .action-btn:hover { color: var(--error); border-color: var(--error); }
+    .empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); }
+    .empty-state .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+    .empty-state h3 { font-family: 'Syne', sans-serif; font-size: 1.2rem; color: var(--text); margin-bottom: 0.5rem; }
+    .loading { text-align: center; padding: 3rem; color: var(--muted); }
+    /* Category colors */
+    .cat-identity { background: rgba(79,142,247,0.12); color: var(--accent); }
+    .cat-education { background: rgba(124,92,252,0.12); color: var(--accent2); }
+    .cat-finance { background: rgba(79,212,122,0.12); color: var(--success); }
+    .cat-medical { background: rgba(247,96,79,0.12); color: var(--error); }
+    .cat-other { background: rgba(123,128,153,0.12); color: var(--muted); }
+    .icon-identity { background: rgba(79,142,247,0.12); }
+    .icon-education { background: rgba(124,92,252,0.12); }
+    .icon-finance { background: rgba(79,212,122,0.12); }
+    .icon-medical { background: rgba(247,96,79,0.12); }
+    .icon-other { background: rgba(123,128,153,0.12); }
+    @media (max-width: 640px) { .sidebar { display: none; } .main { padding: 1.2rem; } }
+
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 999; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 1.8rem; max-width: 680px; width: 90vw; position: relative; max-height: 90vh; overflow-y: auto; }
+    .modal-close { position: absolute; top: 1rem; right: 1rem; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+    .modal-close:hover { color: var(--error); border-color: var(--error); }
+    .modal-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; margin-bottom: 0.3rem; padding-right: 2rem; }
+    .modal-meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.2rem; }
+    .modal-preview { width: 100%; max-height: 400px; object-fit: contain; border-radius: 10px; border: 1px solid var(--border); background: #000; }
+    .modal-pdf { width: 100%; height: 420px; border-radius: 10px; border: 1px solid var(--border); }
+    .modal-actions { display: flex; gap: 0.8rem; margin-top: 1.2rem; flex-wrap: wrap; }
+    .btn-view { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 8px; color: #fff; padding: 0.55rem 1.2rem; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .btn-del-modal { background: transparent; border: 1px solid var(--error); border-radius: 8px; color: var(--error); padding: 0.55rem 1.2rem; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; cursor: pointer; }
+    .no-preview { text-align: center; padding: 2.5rem; color: var(--muted); font-size: 0.92rem; }
+    .no-preview .np-icon { font-size: 3rem; margin-bottom: 0.6rem; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Digi<span>Lock</span></div>
+  <div class="topbar-right">
+    <div class="user-chip">
+      <div class="avatar" id="avatarInitial">?</div>
+      <span id="userName">Loading...</span>
+    </div>
+    <button class="btn-logout" onclick="logout()">Sign Out</button>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-label">My Vault</div>
+    <button class="sidebar-item active" onclick="filterCat('all', null, this)"><span class="icon">🗂️</span> All Documents</button>
+    <button class="sidebar-item" onclick="filterCat('identity', null, this)"><span class="icon">🪪</span> Identity</button>
+    <button class="sidebar-item" onclick="filterCat('education', null, this)"><span class="icon">🎓</span> Education</button>
+    <button class="sidebar-item" onclick="filterCat('finance', null, this)"><span class="icon">💳</span> Finance</button>
+    <button class="sidebar-item" onclick="filterCat('medical', null, this)"><span class="icon">🏥</span> Medical</button>
+    <button class="sidebar-item" onclick="filterCat('other', null, this)"><span class="icon">📄</span> Other</button>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <h1>My Documents</h1>
+      <p id="greetMsg">Welcome back!</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total Documents</div>
+        <div class="stat-val" id="totalDocs">—</div>
+        <div class="stat-sub">in your vault</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Identity</div>
+        <div class="stat-val" id="countIdentity">—</div>
+        <div class="stat-sub">documents</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Education</div>
+        <div class="stat-val" id="countEducation">—</div>
+        <div class="stat-sub">documents</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Finance</div>
+        <div class="stat-val" id="countFinance">—</div>
+        <div class="stat-sub">documents</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" placeholder="Search documents..." oninput="searchDocs(this.value)" />
+      </div>
+      <a href="upload.html" class="btn-upload">+ Upload Document</a>
+    </div>
+
+    <div class="filters">
+      <button class="filter-chip active" onclick="filterCat('all', this, null)">All</button>
+      <button class="filter-chip" onclick="filterCat('identity', this, null)">Identity</button>
+      <button class="filter-chip" onclick="filterCat('education', this, null)">Education</button>
+      <button class="filter-chip" onclick="filterCat('finance', this, null)">Finance</button>
+      <button class="filter-chip" onclick="filterCat('medical', this, null)">Medical</button>
+      <button class="filter-chip" onclick="filterCat('other', this, null)">Other</button>
+    </div>
+
+    <div id="docsContainer">
+      <div class="loading">Loading your documents...</div>
+    </div>
+  </main>
+</div>
+
+<!-- DOCUMENT PREVIEW MODAL -->
+<div class="modal-overlay" id="docModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="modalTitle">Document</div>
+    <div class="modal-meta" id="modalMeta"></div>
+    <div id="modalPreviewArea"></div>
+    <div class="modal-actions">
+      <a class="btn-view" id="modalOpenBtn" href="#" target="_blank" rel="noopener">🔗 Open Original</a>
+      <button class="btn-del-modal" id="modalDeleteBtn">🗑️ Delete</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut }
+    from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, deleteDoc }
+    from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  // 🔧 REPLACE WITH YOUR FIREBASE CONFIG
+  const firebaseConfig = {
+  apiKey: "AIzaSyBnxJyQkSNoxyH5G7jIbDIes3-7yduaO9M",
+  authDomain: "diglocker.firebaseapp.com",
+  projectId: "diglocker",
+  storageBucket: "diglocker.firebasestorage.app",
+  messagingSenderId: "655100088476",
+  appId: "1:655100088476:web:606478c6e2cf403cc0dd59",
+  measurementId: "G-CT4077PKS0"
+};
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let allDocs = [];
+  let currentCategory = 'all';
+  let currentSearch = '';
+
+  const catIcons = { identity: '🪪', education: '🎓', finance: '💳', medical: '🏥', other: '📄' };
+  const catLabels = { identity: 'Identity', education: 'Education', finance: 'Finance', medical: 'Medical', other: 'Other' };
+
+  onAuthStateChanged(auth, user => {
+    if (!user) { window.location.href = 'login.html'; return; }
+    const name = user.displayName || user.email.split('@')[0];
+    document.getElementById('userName').textContent = name;
+    document.getElementById('avatarInitial').textContent = name[0].toUpperCase();
+    document.getElementById('greetMsg').textContent = `Welcome back, ${name.split(' ')[0]}! 👋`;
+
+    // Query without orderBy to avoid needing a composite Firestore index
+    const q = query(
+      collection(db, 'documents'),
+      where('uid', '==', user.uid)
+    );
+
+    onSnapshot(q, snapshot => {
+      allDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Sort client-side by uploadedAt descending
+      allDocs.sort((a, b) => {
+        const ta = a.uploadedAt?.toMillis?.() || 0;
+        const tb = b.uploadedAt?.toMillis?.() || 0;
+        return tb - ta;
+      });
+      updateStats();
+      renderDocs();
+    }, err => {
+      document.getElementById('docsContainer').innerHTML =
+        `<div class="empty-state"><div class="empty-icon">⚠️</div><h3>Could not load documents</h3><p>${err.message}</p></div>`;
+    });
+  });
+
+  function updateStats() {
+    document.getElementById('totalDocs').textContent = allDocs.length;
+    ['identity','education','finance'].forEach(cat => {
+      document.getElementById('count' + cat.charAt(0).toUpperCase() + cat.slice(1)).textContent =
+        allDocs.filter(d => d.category === cat).length;
+    });
+  }
+
+  function renderDocs() {
+    let filtered = allDocs;
+    if (currentCategory !== 'all') filtered = filtered.filter(d => d.category === currentCategory);
+    if (currentSearch) filtered = filtered.filter(d => d.name.toLowerCase().includes(currentSearch.toLowerCase()));
+
+    const container = document.getElementById('docsContainer');
+    if (!filtered.length) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><h3>No documents found</h3><p>Upload your first document to get started.</p></div>`;
+      return;
+    }
+
+    container.innerHTML = `<div class="docs-grid">${filtered.map(document => `
+      <div class="doc-card" onclick="openDoc('${document.id}')">
+        <div class="doc-icon icon-${document.category}">${catIcons[document.category] || '📄'}</div>
+        <div class="doc-actions">
+          <button class="action-btn" onclick="event.stopPropagation(); deleteDocument('${document.id}')" title="Delete">🗑️</button>
+        </div>
+        <h3>${document.name}</h3>
+        <div class="doc-meta">
+          ${document.uploadedAt ? new Date(document.uploadedAt.toDate()).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : 'Just now'}
+          ${document.fileSize ? ' · ' + formatSize(document.fileSize) : ''}
+        </div>
+        <span class="doc-tag cat-${document.category}">${catLabels[document.category] || 'Other'}</span>
+      </div>
+    `).join('')}</div>`;
+  }
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/1048576).toFixed(1) + ' MB';
+  }
+
+  window.filterCat = function(cat, chipEl, sidebarEl) {
+    currentCategory = cat;
+    renderDocs();
+
+    // Update filter chips
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    if (chipEl) chipEl.classList.add('active');
+
+    // Update sidebar items
+    document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+    if (sidebarEl) {
+      sidebarEl.classList.add('active');
+    } else if (chipEl) {
+      // Chip was clicked — highlight matching sidebar item
+      const sidebarBtns = document.querySelectorAll('.sidebar-item');
+      sidebarBtns.forEach(s => {
+        if (s.textContent.trim().toLowerCase().includes(cat === 'all' ? 'all' : cat)) {
+          s.classList.add('active');
+        }
+      });
+    }
+  };
+
+  window.searchDocs = function(val) {
+    currentSearch = val;
+    renderDocs();
+  };
+
+  window.openDoc = function(id) {
+    const docData = allDocs.find(d => d.id === id);
+    if (!docData) return;
+
+    document.getElementById('modalTitle').textContent = docData.name;
+    document.getElementById('modalMeta').textContent =
+      `${catLabels[docData.category] || 'Other'} · ${
+        docData.uploadedAt ? new Date(docData.uploadedAt.toDate()).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : 'Just now'
+      }${docData.fileSize ? ' · ' + formatSize(docData.fileSize) : ''}`;
+
+    const previewArea = document.getElementById('modalPreviewArea');
+    const url = docData.fileUrl;
+    const type = docData.fileType || '';
+
+    if (type.startsWith('image/')) {
+      previewArea.innerHTML = `<img class="modal-preview" src="${url}" alt="${docData.name}" />`;
+    } else if (type === 'application/pdf') {
+      previewArea.innerHTML = `<iframe class="modal-pdf" src="${url}" title="${docData.name}"></iframe>`;
+    } else {
+      previewArea.innerHTML = `<div class="no-preview"><div class="np-icon">📎</div>Preview not available for this file type.</div>`;
+    }
+
+    document.getElementById('modalOpenBtn').href = url;
+    document.getElementById('modalDeleteBtn').onclick = () => deleteDocument(id);
+    document.getElementById('docModal').classList.add('open');
+  };
+
+  window.closeModal = function() {
+    document.getElementById('docModal').classList.remove('open');
+    document.getElementById('modalPreviewArea').innerHTML = '';
+  };
+
+  // Close modal on overlay click
+  document.getElementById('docModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  window.deleteDocument = async function(id) {
+    if (!confirm('Delete this document?')) return;
+    try {
+      await deleteDoc(doc(db, 'documents', id));
+      closeModal();
+    } catch (e) { alert('Could not delete: ' + e.message); }
+  };
+
+  window.logout = async function() {
+    await signOut(auth);
+    window.location.href = 'login.html';
+  };
+</script>
+
+</body>
+</html>
